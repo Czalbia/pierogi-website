@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Pierogi Website!</title>
+    <style>
+        /* General Styles */
+        body {
+            background-color: #ffefd5; /* PapayaWhip background for a warm feel */
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            text-align: center;
+            padding: 50px 20px; /* Increased vertical padding */
+            margin: 0;
+            box-sizing: border-box;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .container {
+            border: 5px dashed #ff6347; /* Tomato color border for fun */
+            padding: 20px;
+            background-color: #fffaf0; /* FloralWhite background */
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            position: relative; /* To contain absolute children */
+            width: 400px; /* Increased width for slightly larger game window */
+            margin: 20px; /* Added margin around the container */
+        }
+
+        h1 {
+            color: #ff4500; /* OrangeRed color for the header */
+            animation: wiggle 1s infinite;
+            margin-bottom: 20px;
+        }
+
+        .pierogi-container {
+            margin: 10px 0;
+            width: 200px;
+            height: 200px;
+            margin-left: auto;
+            margin-right: auto;
+            /* Create a square container */
+            position: relative;
+            overflow: hidden;
+            border-radius: 50%; /* Optional: Make the container circular */
+            border: 2px solid #2e8b57; /* Optional: Add a border to the container */
+            cursor: pointer; /* Indicate clickable */
+        }
+
+        .pierogi-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures the image covers the container without distortion */
+            animation: spin 4s linear infinite;
+        }
+
+        p {
+            font-size: 1.2em;
+            color: #2e8b57; /* SeaGreen color for the text */
+            margin: 10px 0;
+        }
+
+        /* Footnote Styles */
+        .footnote {
+            font-size: 0.8em;
+            color: #555;
+            margin-top: auto; /* Push to the bottom */
+            font-style: italic;
+            white-space: nowrap; /* Ensure single line */
+        }
+
+        /* Keyframes for spinning */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Keyframes for wiggle effect on header */
+        @keyframes wiggle {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(5deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(-5deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                width: 90%; /* Adjust container width for smaller screens */
+                margin: 10px auto; /* Center container with vertical margin */
+            }
+
+            .pierogi-container {
+                width: 150px;
+                height: 150px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            p {
+                font-size: 1em;
+            }
+
+            .footnote {
+                font-size: 0.7em;
+            }
+        }
+
+        /* Game Styles */
+        #gameContainer {
+            display: none; /* Hidden initially */
+            position: fixed; /* Fixed positioning to center on screen */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center the container */
+            width: 640px; /* Increased width for larger game window (16:9 aspect ratio) */
+            height: 360px; /* Increased height for larger game window (16:9 aspect ratio) */
+            border: 5px dashed #ff6347; /* Tomato color border for consistency */
+            padding: 15px;
+            background-color: #fffaf0; /* FloralWhite background */
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            overflow: hidden;
+            z-index: 1000; /* Ensure it stays on top */
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1.2em;
+            color: #ff4500;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            color: #ff6347;
+            display: none;
+            z-index: 2;
+            cursor: pointer; /* Indicate clickable for restart */
+        }
+
+        /* Pierogi (Player) */
+        .player {
+            position: absolute;
+            bottom: 40px; /* Adjusted to sit on the ground */
+            left: 30px;
+            width: 30px; /* Reduced size for smaller game window */
+            height: 30px; /* Reduced size for smaller game window */
+            background-image: url('https://i.imgur.com/8Km9tLL.png'); /* Placeholder Pierogi Image */
+            background-size: cover;
+            animation: run 0.5s steps(2) infinite;
+        }
+
+        @keyframes run {
+            from { background-position: 0px; }
+            to { background-position: -80px; }
+        }
+
+        /* Fork (Obstacle) */
+        .obstacle {
+            position: absolute;
+            bottom: 40px; /* Align with the ground */
+            right: -40px;
+            width: 25px; /* Reduced size for smaller game window */
+            height: 50px; /* Reduced size for smaller game window */
+            background-image: url('https://i.imgur.com/5KZx3kH.png'); /* Placeholder Fork Image */
+            background-size: cover;
+            animation: moveObstacle 5s linear infinite; /* Slowed down obstacles */
+        }
+
+        @keyframes moveObstacle {
+            from { right: -40px; }
+            to { right: 100%; }
+        }
+
+        /* Ground */
+        .ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px; /* Height of the ground */
+            background-color: #8B4513; /* SaddleBrown color for ground */
+        }
+
+        /* Jump Animation */
+        .player.jump {
+            animation: jump 1s ease; /* Increased duration for smoother jump */
+        }
+
+        @keyframes jump {
+            0% { bottom: 40px; }
+            50% { bottom: 180px; } /* Increased jump peak from 160px to 180px */
+            100% { bottom: 40px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="container" id="mainContainer">
+        <h1>Welcome to Pierogi Website!</h1>
+        <div class="pierogi-container" id="pierogiContainer">
+            <!-- Spinning Pierogi Image -->
+            <img src="https://i.imgur.com/8Km9tLL.png" alt="Spinning Pierogi">
+        </div>
+        <p>Hold on tight, your pierogi is spinning to perfection! 🥟🎉</p>
+        <!-- Footnote -->
+        <div class="footnote">I created this website as a memorial to my huge passion of cooking Pierogi Polish dumplings.</div>
+    </div>
+
+    <!-- Game Container -->
+    <div id="gameContainer">
+        <div id="score">Score: 0</div>
+        <div class="player" id="player"></div>
+        <div class="game-over" id="gameOver">Game Over! Click to Restart</div>
+        <!-- Ground -->
+        <div class="ground"></div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="partySound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" preload="auto"></audio>
+    <audio id="jumpSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
+    <audio id="gameOverSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
+
+    <script>
+        // Elements
+        const pierogiContainer = document.getElementById('pierogiContainer');
+        const mainContainer = document.getElementById('mainContainer');
+        const gameContainer = document.getElementById('gameContainer');
+        const scoreDisplay = document.getElementById('score');
+        const gameOverText = document.getElementById('gameOver');
+        const player = document.getElementById('player');
+        const partySound = document.getElementById('partySound');
+        const jumpSound = document.getElementById('jumpSound');
+        const gameOverSound = document.getElementById('gameOverSound');
+
+        // Game Variables
+        let isJumping = false;
+        let score = 0;
+        let obstacleInterval;
+        let gameLoopInterval;
+        let gameOverFlag = false;
+
+        // Play party sound on page load
+        window.onload = function() {
+            // Attempt to play the sound
+            partySound.play().catch(function(error) {
+                console.log('Autoplay was prevented. Click anywhere to start the party sound!');
+                // Add an event listener to play on user interaction
+                document.body.addEventListener('click', function() {
+                    partySound.play();
+                }, { once: true });
+            });
+        }
+
+        // Function to start the game
+        function startGame() {
+            // Hide main container and show game container
+            mainContainer.style.display = 'none';
+            gameContainer.style.display = 'block';
+
+            // Initialize score
+            score = 0;
+            scoreDisplay.textContent = 'Score: ' + score;
+
+            // Start generating obstacles
+            obstacleInterval = setInterval(createObstacle, 2000); // Adjusted to 2000ms for better pacing
+
+            // Start the game loop
+            gameLoopInterval = setInterval(updateGame, 20);
+        }
+
+        // Function to create obstacles (forks)
+        function createObstacle() {
+            if (gameOverFlag) return;
+
+            const obstacle = document.createElement('div');
+            obstacle.classList.add('obstacle');
+            gameContainer.appendChild(obstacle);
+
+            // Remove obstacle after it moves out of the screen
+            obstacle.addEventListener('animationend', () => {
+                obstacle.remove();
+                score += 1;
+                scoreDisplay.textContent = 'Score: ' + score;
+            });
+        }
+
+        // Function to handle player jump
+        function jump() {
+            if (isJumping || gameOverFlag) return;
+            isJumping = true;
+            player.classList.add('jump');
+            jumpSound.play();
+
+            setTimeout(() => {
+                player.classList.remove('jump');
+                isJumping = false;
+            }, 1000); // Duration of jump animation
+        }
+
+        // Function to update the game state
+        function updateGame() {
+            if (gameOverFlag) return;
+
+            const obstacles = document.querySelectorAll('.obstacle');
+            obstacles.forEach(obstacle => {
+                const obstacleRect = obstacle.getBoundingClientRect();
+                const playerRect = player.getBoundingClientRect();
+                const gameContainerRect = gameContainer.getBoundingClientRect();
+
+                // Collision Detection
+                if (
+                    playerRect.right > obstacleRect.left &&
+                    playerRect.left < obstacleRect.right &&
+                    playerRect.bottom > obstacleRect.top
+                ) {
+                    endGame();
+                }
+            });
+        }
+
+        // Function to end the game
+        function endGame() {
+            gameOverFlag = true;
+            clearInterval(obstacleInterval);
+            clearInterval(gameLoopInterval);
+            gameOverText.style.display = 'block';
+            gameOverSound.play();
+        }
+
+        // Event Listeners
+        pierogiContainer.addEventListener('click', () => {
+            startGame();
+        }); 
+
+        // Listen for spacebar to jump
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                jump();
+            }
+        });
+
+        // Mobile Touch to Jump
+        gameContainer.addEventListener('touchstart', () => {
+            jump();
+        });
+
+        // Restart the game when clicking on Game Over
+        gameOverText.addEventListener('click', () => {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>
